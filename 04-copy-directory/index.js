@@ -13,11 +13,11 @@ const checkAndRMcopy = async () => {
   }
 };
 
-const createFold = async () => {
+const createFold = async (To) => {
   console.log('CreateDirec');
   try {
     await fsPromises.mkdir(
-      path.join(__dirname, 'files-copy'),
+      To,
       //  console.log('Directory created successfully!');
     );
   } catch (error) {
@@ -25,9 +25,10 @@ const createFold = async () => {
   }
 };
 
-const readir = async () => {
+const readir = async (From, To) => {
+  await createFold(To);
   console.log('ReadDir');
-  const files = await fsPromises.readdir(path.join(__dirname, '/files'), {
+  const files = await fsPromises.readdir(From, {
     withFileTypes: true,
   });
 
@@ -35,9 +36,12 @@ const readir = async () => {
 
   files.forEach((file) => {
     //  console.log(files);
+    if (file.isDirectory()) {
+      readir(path.join(From, file['name']), path.join(To, file['name']));
+    }
     fs.copyFile(
-      `${path.join(__dirname, 'files', file['name'])}`,
-      `${path.join(__dirname, 'files-copy', file['name'])}`,
+      `${path.join(From, file['name'])}`,
+      `${path.join(To, file['name'])}`,
       (err) => {
         if (err) {
           console.log('Error Found:', err);
@@ -49,8 +53,11 @@ const readir = async () => {
 
 const main = async () => {
   await checkAndRMcopy();
-  await createFold();
-  await readir();
+  //await createFold();
+  await readir(
+    path.join(__dirname, '/files'),
+    path.join(__dirname, '/files-copy'),
+  );
 };
 
 main();
