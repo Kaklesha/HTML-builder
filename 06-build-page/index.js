@@ -16,10 +16,7 @@ const checkAndRMcopy = async (To) => {
 const createFold = async (To) => {
   console.log('CreateDirec');
   try {
-    await fsPromises.mkdir(
-      To,
-      //  console.log('Directory created successfully!');
-    );
+    await fsPromises.mkdir(To);
   } catch (error) {
     console.error(error);
   }
@@ -35,7 +32,6 @@ const readir = async (From, To) => {
   console.log(files);
 
   files.forEach((file) => {
-    //  console.log(files);
     if (file.isDirectory()) {
       readir(path.join(From, file['name']), path.join(To, file['name']));
     }
@@ -53,13 +49,11 @@ const readir = async (From, To) => {
 
 const readirStyle = async (From, To) => {
   const output = fs.createWriteStream(To);
-  //await createFold(To);
   console.log('ReadDir');
   const files = await fsPromises.readdir(From, {
     withFileTypes: true,
   });
 
-  //console.log(files);
   files.forEach((file) => {
     if (path.extname(file['name']) === '.css') {
       const input = fs.createReadStream(path.join(From, file['name']), 'utf-8');
@@ -67,6 +61,41 @@ const readirStyle = async (From, To) => {
       input.on('error', (error) => console.log('Error', error.message));
     }
   });
+};
+
+const readirComponents = async (From, To) => {
+  const output = fs.createWriteStream(To);
+  let templateHTML;
+  try {
+    templateHTML = await fsPromises.readFile(
+      path.join(__dirname, 'template.html'),
+    );
+  } catch (error) {
+    console.error(error);
+  }
+  templateHTML = templateHTML.toString();
+  console.log('ReadDirComponents');
+  const files = await fsPromises.readdir(From, {
+    withFileTypes: true,
+  });
+
+  for (const file of files) {
+    if (path.extname(file['name']) === '.html') {
+      const tempFileName = `{{${path.basename(file['name'], '.html')}}}`;
+      if (templateHTML.includes(tempFileName)) {
+        let inputFile = await fsPromises.readFile(
+          path.join(From, file['name']),
+        );
+        inputFile = inputFile.toString();
+        templateHTML = templateHTML.replaceAll(tempFileName, inputFile);
+      }
+    }
+  }
+  try {
+    output.write(templateHTML);
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const main = async () => {
@@ -85,6 +114,10 @@ const main = async () => {
   await readir(
     path.join(__dirname, '/assets'),
     path.join(__dirname, '/project-dist/assets'),
+  );
+  await readirComponents(
+    path.join(__dirname, '/components'),
+    path.join(__dirname, '/project-dist/index.html'),
   );
 };
 
