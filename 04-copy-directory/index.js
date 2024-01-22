@@ -1,22 +1,25 @@
 const fs = require('fs');
 const fsPromises = require('fs/promises');
 const path = require('path');
+
 const checkAndRMcopy = async () => {
   console.log('checkAndRMcopy');
-  await fsPromises.rm(path.join(__dirname, 'files-copy'), {
-    recursive: true,
-  });
+  try {
+    await fsPromises.rm(path.join(__dirname, 'files-copy'), {
+      recursive: true,
+    });
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const createFold = async () => {
   console.log('CreateDirec');
   try {
-    await fsPromises.mkdir(path.join(__dirname, 'files-copy'), (err) => {
-      if (err) {
-        return console.error(err);
-      }
+    await fsPromises.mkdir(
+      path.join(__dirname, 'files-copy'),
       //  console.log('Directory created successfully!');
-    });
+    );
   } catch (error) {
     console.error(error);
   }
